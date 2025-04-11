@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type DomainScore = {
@@ -29,6 +28,7 @@ type AssessmentContextType = {
   overallScore: number;
   setAnswer: (questionId: string, score: number) => void;
   resetAssessment: () => void;
+  getQuestionScore: (questionId: string) => number;
 };
 
 const defaultDomainScores: DomainScore = {
@@ -131,6 +131,12 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.removeItem('pki-assessment-answers');
   };
 
+  // Add the new getQuestionScore function
+  const getQuestionScore = (questionId: string): number => {
+    const answer = answers.find(a => a.questionId === questionId);
+    return answer ? answer.score : 0;
+  };
+
   return (
     <AssessmentContext.Provider
       value={{
@@ -139,6 +145,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         overallScore,
         setAnswer,
         resetAssessment,
+        getQuestionScore,
       }}
     >
       {children}
