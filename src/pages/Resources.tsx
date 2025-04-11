@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAssessment, resourcesQuestions } from '@/contexts/AssessmentContext';
 import QuestionCard from '@/components/QuestionCard';
@@ -8,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
+// Create a copy of the resources questions and mark them as read-only
+const readOnlyResourcesQuestions = resourcesQuestions.map(question => ({
+  ...question,
+  isReadOnly: true
+}));
 
 const Resources: React.FC = () => {
   const { domainScores } = useAssessment();
@@ -23,14 +28,13 @@ const Resources: React.FC = () => {
         <div className="lg:col-span-2">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
             <p className="text-red-700">
-              This section evaluates your PKI resources including dedicated expertise, training programs,
-              management tools, budget allocation, and executive support. Answer all questions to receive 
-              your resources maturity score.
+              This section evaluates your PKI expertise, training programs, management tools, and executive support.
+              These questions are for reference only and do not contribute to your score.
             </p>
           </div>
 
           <div className="mb-6">
-            {resourcesQuestions.map((question) => (
+            {readOnlyResourcesQuestions.map((question) => (
               <QuestionCard key={question.id} question={question} />
             ))}
           </div>
@@ -59,7 +63,7 @@ const Resources: React.FC = () => {
         
         <Button asChild className="bg-red-600 hover:bg-red-700">
           <Link to="/report" className="flex items-center gap-2">
-            View Full Report
+            View Report
             <ChevronRight size={16} />
           </Link>
         </Button>

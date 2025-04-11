@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAssessment, governanceQuestions } from '@/contexts/AssessmentContext';
 import QuestionCard from '@/components/QuestionCard';
@@ -8,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
+// Create a copy of the governance questions and mark them as read-only
+const readOnlyGovernanceQuestions = governanceQuestions.map(question => ({
+  ...question,
+  isReadOnly: true
+}));
 
 const Governance: React.FC = () => {
   const { domainScores } = useAssessment();
@@ -24,12 +29,12 @@ const Governance: React.FC = () => {
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <p className="text-blue-700">
               This section evaluates your PKI governance policies, structure, risk management framework, and compliance.
-              Answer all questions to receive your governance maturity score.
+              These questions are for reference only and do not contribute to your score.
             </p>
           </div>
 
           <div className="mb-6">
-            {governanceQuestions.map((question) => (
+            {readOnlyGovernanceQuestions.map((question) => (
               <QuestionCard key={question.id} question={question} />
             ))}
           </div>

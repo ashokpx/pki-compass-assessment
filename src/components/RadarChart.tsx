@@ -1,12 +1,7 @@
-
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip, Legend, PolarRadiusAxis } from 'recharts';
 import { useAssessment, Question, governanceQuestions, managementQuestions, operationsQuestions, resourcesQuestions } from '@/contexts/AssessmentContext';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from '@/components/ui/chart';
+import { Card } from 'flowbite-react';
 
 interface RadarChartProps {
   size?: 'sm' | 'md' | 'lg';
@@ -76,19 +71,15 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
 
   const chartConfig = {
     score: {
-      label: 'Achieved PKI Maturity Level',
-      theme: {
-        light: '#b875dc', // Purple color as in the screenshot
-        dark: '#b875dc',
-      },
+      fill: '#b875dc',
+      stroke: '#b875dc',
+      fillOpacity: 0.4
     },
     fullMark: {
-      label: 'Maximum Score',
-      theme: {
-        light: '#dddddd',
-        dark: '#555555',
-      },
-    },
+      fill: '#dddddd',
+      stroke: '#dddddd',
+      fillOpacity: 0.1
+    }
   };
 
   // Height based on size prop
@@ -97,64 +88,71 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
     size === 'md' ? 'h-72' : 
     'h-96';
 
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-2 shadow-md rounded-md border border-gray-200">
+          <p className="text-sm font-medium">{data.subject}</p>
+          {data.tooltipText && <p className="text-xs text-gray-600">{data.tooltipText}</p>}
+          <p className="text-sm font-semibold text-purple-600">Score: {data.score}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className={`w-full ${heightClass} ${className}`}>
-      <ChartContainer config={chartConfig} className="w-full h-full">
-        <RadarChart 
-          outerRadius="80%" 
-          data={data}
-        >
-          <PolarGrid gridType="polygon" stroke="#ccc" />
-          <PolarAngleAxis 
-            dataKey="subject" 
-            tick={{ 
-              fill: '#555',
-              fontSize: size === 'sm' ? 10 : 12,
-              fontWeight: 'bold' 
-            }} 
-          />
-          <PolarRadiusAxis 
-            domain={[0, 5]} 
-            tickCount={6} 
-            axisLine={true}
-            tick={{ fontSize: 10 }}
-          />
-          <Radar
-            name={chartConfig.score.label}
-            dataKey="score"
-            stroke={chartConfig.score.theme.light}
-            fill={chartConfig.score.theme.light}
-            fillOpacity={0.4}
-            dot={true}
-          />
-          {showFullMark && (
-            <Radar
-              name={chartConfig.fullMark.label}
-              dataKey="fullMark"
-              stroke={chartConfig.fullMark.theme.light}
-              fill={chartConfig.fullMark.theme.light}
-              fillOpacity={0.1}
-              dot={false}
+    <Card className={`w-full ${heightClass} ${className}`}>
+      <div className="h-1.5 w-full bg-purple-500"></div>
+      <div className="p-4 h-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart 
+            outerRadius="80%" 
+            data={data}
+          >
+            <PolarGrid gridType="polygon" stroke="#ccc" />
+            <PolarAngleAxis 
+              dataKey="subject" 
+              tick={{ 
+                fill: '#555',
+                fontSize: size === 'sm' ? 10 : 12,
+                fontWeight: 'bold' 
+              }} 
             />
-          )}
-          {showTooltip && (
-            <ChartTooltip content={
-              <ChartTooltipContent 
-                formatter={(value, name, entry) => {
-                  // @ts-ignore - tooltipText is a custom property
-                  const tooltipText = entry.payload.tooltipText;
-                  if (tooltipText && showDetailedView) {
-                    return [value, `${name}: ${tooltipText}`];
-                  }
-                  return [value, name];
-                }}
+            <PolarRadiusAxis 
+              domain={[0, 5]} 
+              tickCount={6} 
+              axisLine={true}
+              tick={{ fontSize: 10 }}
+            />
+            <Radar
+              name="Achieved PKI Maturity Level"
+              dataKey="score"
+              stroke={chartConfig.score.stroke}
+              fill={chartConfig.score.fill}
+              fillOpacity={chartConfig.score.fillOpacity}
+              dot={true}
+            />
+            {showFullMark && (
+              <Radar
+                name="Maximum Score"
+                dataKey="fullMark"
+                stroke={chartConfig.fullMark.stroke}
+                fill={chartConfig.fullMark.fill}
+                fillOpacity={chartConfig.fullMark.fillOpacity}
+                dot={false}
               />
-            } />
-          )}
-          {showLegend && <Legend />}
-        </RadarChart>
-      </ChartContainer>
-    </div>
+            )}
+            {showTooltip && (
+              <Tooltip content={<CustomTooltip />} />
+            )}
+            {showLegend && <Legend />}
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAssessment, Question } from '@/contexts/AssessmentContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface QuestionCardProps {
   question: Question;
@@ -16,7 +16,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, showFeedback = tr
   const { answers, setAnswer } = useAssessment();
   const { toast } = useToast();
   const existingAnswer = answers.find(a => a.questionId === question.id);
-  const selectedValue = existingAnswer ? existingAnswer.score : 0;
+  // Default to 1 if no answer exists
+  const selectedValue = existingAnswer ? existingAnswer.score : 1;
   
   // Local state to track score changes for animation
   const [prevValue, setPrevValue] = useState(selectedValue);
@@ -41,21 +42,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, showFeedback = tr
     const prevValue = selectedValue;
     setAnswer(question.id, newValue);
     
-    // Show toast notification for first answer or score change
-    if (showFeedback) {
-      if (prevValue === 0) {
-        toast({
-          title: "Question answered",
-          description: "Your assessment score has been updated",
-          duration: 2000,
-        });
-      } else if (prevValue !== newValue) {
-        toast({
-          title: "Answer updated",
-          description: `Changed from ${prevValue} to ${newValue}`,
-          duration: 2000,
-        });
-      }
+    // Show toast notification for score change
+    if (showFeedback && prevValue !== newValue) {
+      toast({
+        title: "Answer updated",
+        description: `Changed from ${prevValue} to ${newValue}`,
+        duration: 2000,
+      });
     }
   };
 
@@ -69,50 +62,67 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, showFeedback = tr
   };
 
   return (
-    <Card className="mb-6 border-t-4 border-t-pki-blue relative">
-      {/* Score indicator */}
-      {selectedValue > 0 && (
-        <motion.div 
-          className={`absolute top-0 right-0 h-12 w-12 rounded-bl-lg flex items-center justify-center ${getScoreColor(selectedValue)}`}
-          initial={isScoreChanged ? { scale: 1.5, backgroundColor: "#b875dc" } : {}}
-          animate={isScoreChanged ? { scale: 1, backgroundColor: "transparent" } : {}}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="text-xl font-bold">{selectedValue}</span>
-        </motion.div>
-      )}
-      
-      <CardContent className="pt-6">
-        <h3 className="text-lg font-semibold mb-4 pr-10">{question.text}</h3>
-        
-        <RadioGroup 
-          value={selectedValue.toString()} 
-          onValueChange={handleChange}
-          className="space-y-3"
-        >
-          {question.options.map((option, index) => (
-            <div key={index} className="flex items-start space-x-2 p-2 rounded hover:bg-pki-lightBlue">
-              <RadioGroupItem 
-                value={option.value.toString()} 
-                id={`${question.id}-option-${option.value}`} 
-                className="mt-1"
-              />
-              <div className="flex-1">
-                <Label 
-                  htmlFor={`${question.id}-option-${option.value}`}
-                  className="flex items-center cursor-pointer"
-                >
-                  <span className="font-medium mr-2">{option.value}:</span>
-                  <span>{option.label}</span>
-                </Label>
+    <Card className="mb-4 border-l-4 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+      style={{ 
+        borderLeftColor: selectedValue >= 4 ? 'var(--green-500)' 
+          : selectedValue >= 3 ? 'var(--blue-500)' 
+          : selectedValue >= 2 ? 'var(--orange-500)' 
+          : 'var(--red-500)' 
+      }}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <motion.div 
+            initial={isScoreChanged ? { scale: 1.5 } : {}}
+            animate={isScoreChanged ? { scale: 1 } : {}}
+            transition={{ duration: 0.5 }}
+            className={`flex-shrink-0 mt-1 ${getScoreColor(selectedValue)}`}
+          >
+            <CheckCircle2 size={20} />
+          </motion.div>
+          
+          <div className="flex-grow">
+            <h3 className="text-lg font-medium mb-3 text-gray-700">{question.text}</h3>
+            
+            <RadioGroup 
+              value={selectedValue.toString()} 
+              onValueChange={handleChange}
+              className="space-y-2"
+            >
+              {question.options.map((option) => (
+                <div key={option.value} className="flex items-center">
+                  <div className={`
+                    flex items-center gap-2 py-2 px-3 rounded-md border w-full transition-all 
+                    ${selectedValue.toString() === option.value.toString() 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50/30'
+                    }
+                  `}>
+                    <RadioGroupItem 
+                      value={option.value.toString()} 
+                      id={`${question.id}-option-${option.value}`} 
+                    />
+                    <Label 
+                      htmlFor={`${question.id}-option-${option.value}`}
+                      className="flex items-center cursor-pointer gap-2 flex-grow"
+                    >
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-800 text-xs font-medium">
+                        {option.value}
+                      </span>
+                      <span>{option.label}</span>
+                    </Label>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+            
+            <div className="mt-3 flex justify-end">
+              <div className={`text-sm font-medium ${getScoreColor(selectedValue)}`}>
+                Score: {selectedValue}/5
               </div>
             </div>
-          ))}
-        </RadioGroup>
-        
-        {selectedValue === 0 && (
-          <p className="text-orange-500 mt-4 text-sm">Please select an option</p>
-        )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

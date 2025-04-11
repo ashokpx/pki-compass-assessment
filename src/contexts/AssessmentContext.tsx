@@ -15,6 +15,7 @@ export type Question = {
     value: number;
     label: string;
   }[];
+  isReadOnly?: boolean;
 };
 
 export type Answer = {
@@ -49,7 +50,23 @@ export const useAssessment = () => {
 };
 
 export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>(() => {
+    // Initialize with default answers of 1 for all questions
+    const defaultAnswers = [
+      ...governanceQuestions,
+      ...managementQuestions,
+      ...operationsQuestions,
+      ...resourcesQuestions
+    ].map(q => ({
+      questionId: q.id,
+      score: 1
+    }));
+
+    // Try to load saved answers from localStorage, fallback to defaults
+    const savedAnswers = localStorage.getItem('pki-assessment-answers');
+    return savedAnswers ? JSON.parse(savedAnswers) : defaultAnswers;
+  });
+  
   const [domainScores, setDomainScores] = useState<DomainScore>(defaultDomainScores);
   const [overallScore, setOverallScore] = useState<number>(0);
 
@@ -76,8 +93,8 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       resources: [],
     };
 
-    // Get all questions to know their domains
-    const allQuestions = [
+    // Get all questions to know their domains - make all questions scorable
+    const allScorableQuestions = [
       ...governanceQuestions,
       ...managementQuestions,
       ...operationsQuestions,
@@ -85,7 +102,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ];
 
     answers.forEach((answer) => {
-      const question = allQuestions.find(q => q.id === answer.questionId);
+      const question = allScorableQuestions.find(q => q.id === answer.questionId);
       if (question) {
         domainAnswers[question.domain].push(answer);
       }
@@ -111,6 +128,7 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const setAnswer = (questionId: string, score: number) => {
+    // Allow setting answers for all questions
     setAnswers((prevAnswers) => {
       const existingAnswerIndex = prevAnswers.findIndex(a => a.questionId === questionId);
       
@@ -131,10 +149,10 @@ export const AssessmentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.removeItem('pki-assessment-answers');
   };
 
-  // Add the new getQuestionScore function
+  // Update getQuestionScore to return 1 as default instead of 0
   const getQuestionScore = (questionId: string): number => {
     const answer = answers.find(a => a.questionId === questionId);
-    return answer ? answer.score : 0;
+    return answer ? answer.score : 1; // Default score is 1 instead of 0
   };
 
   return (

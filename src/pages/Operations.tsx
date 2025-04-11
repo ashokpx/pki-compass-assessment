@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAssessment, operationsQuestions } from '@/contexts/AssessmentContext';
 import QuestionCard from '@/components/QuestionCard';
@@ -8,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
+// Create a copy of the operations questions and mark them as read-only
+const readOnlyOperationsQuestions = operationsQuestions.map(question => ({
+  ...question,
+  isReadOnly: true
+}));
 
 const Operations: React.FC = () => {
   const { domainScores } = useAssessment();
@@ -23,14 +28,13 @@ const Operations: React.FC = () => {
         <div className="lg:col-span-2">
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
             <p className="text-yellow-700">
-              This section evaluates your PKI operational practices including incident response, CA operations,
-              business continuity planning, certificate deployment, and monitoring. Answer all questions to receive 
-              your operations maturity score.
+              This section evaluates your incident response, CA operations, business continuity, and PKI monitoring.
+              These questions are for reference only and do not contribute to your score.
             </p>
           </div>
 
           <div className="mb-6">
-            {operationsQuestions.map((question) => (
+            {readOnlyOperationsQuestions.map((question) => (
               <QuestionCard key={question.id} question={question} />
             ))}
           </div>
