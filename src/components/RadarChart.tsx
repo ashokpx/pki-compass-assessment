@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip, Legend, PolarRadiusAxis } from 'recharts';
 import { useAssessment, DomainScore } from '@/contexts/AssessmentContext';
 import { 
   ChartContainer, 
@@ -12,6 +12,7 @@ interface RadarChartProps {
   size?: 'sm' | 'md' | 'lg';
   showTooltip?: boolean;
   showLegend?: boolean;
+  showFullMark?: boolean;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
   size = 'lg', 
   showTooltip = true,
   showLegend = true,
+  showFullMark = true,
   className 
 }) => {
   const { domainScores } = useAssessment();
@@ -66,6 +68,7 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
               fontWeight: 'bold' 
             }} 
           />
+          <PolarRadiusAxis domain={[0, 5]} tickCount={6} />
           <Radar
             name="Current Score"
             dataKey="score"
@@ -73,6 +76,15 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
             fill="#2270e0"
             fillOpacity={0.5}
           />
+          {showFullMark && (
+            <Radar
+              name="Maximum Score"
+              dataKey="fullMark"
+              stroke="#cccccc"
+              fill="#cccccc"
+              fillOpacity={0.3}
+            />
+          )}
           {showTooltip && (
             <ChartTooltip content={<ChartTooltipContent />} />
           )}
