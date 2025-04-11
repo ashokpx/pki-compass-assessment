@@ -52,7 +52,7 @@ const Overview: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Maturity Radar Chart</h2>
-            <RadarChart />
+            <RadarChart showDetailedView={true} />
           </div>
         </>
       )}

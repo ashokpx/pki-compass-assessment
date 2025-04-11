@@ -39,7 +39,7 @@ const Management: React.FC = () => {
           <Card>
             <CardContent className="pt-6">
               <h3 className="text-lg font-semibold mb-4">Live Assessment Progress</h3>
-              <RadarChart size="md" showLegend={false} />
+              <RadarChart size="md" showLegend={false} showDetailedView={true} />
               <div className="text-center mt-4 text-sm text-gray-500">
                 Chart updates as you answer questions
               </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip, Legend, PolarRadiusAxis } from 'recharts';
-import { useAssessment, DomainScore } from '@/contexts/AssessmentContext';
+import { useAssessment, Question, governanceQuestions, managementQuestions, operationsQuestions, resourcesQuestions } from '@/contexts/AssessmentContext';
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -13,6 +13,7 @@ interface RadarChartProps {
   showTooltip?: boolean;
   showLegend?: boolean;
   showFullMark?: boolean;
+  showDetailedView?: boolean;
   className?: string;
 }
 
@@ -21,29 +22,70 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
   showTooltip = true,
   showLegend = true,
   showFullMark = true,
+  showDetailedView = false,
   className 
 }) => {
-  const { domainScores } = useAssessment();
+  const { domainScores, getQuestionScore } = useAssessment();
   
-  const data = [
+  // For domain overview (default view)
+  const domainData = [
     { subject: 'Governance', score: domainScores.governance, fullMark: 5 },
     { subject: 'Management', score: domainScores.management, fullMark: 5 },
     { subject: 'Operations', score: domainScores.operations, fullMark: 5 },
     { subject: 'Resources', score: domainScores.resources, fullMark: 5 },
   ];
 
+  // For detailed question view
+  const getQuestionLabel = (question: Question, index: number, domain: string): string => {
+    const prefix = domain.charAt(0).toUpperCase();
+    return `${prefix}.${index + 1}`;
+  };
+
+  const allQuestions = [
+    ...governanceQuestions.map((q, i) => ({ 
+      question: q, 
+      subject: getQuestionLabel(q, i, 'governance'),
+      domain: 'Governance'
+    })),
+    ...managementQuestions.map((q, i) => ({ 
+      question: q, 
+      subject: getQuestionLabel(q, i, 'management'),
+      domain: 'Management'
+    })),
+    ...operationsQuestions.map((q, i) => ({ 
+      question: q, 
+      subject: getQuestionLabel(q, i, 'operations'),
+      domain: 'Operations'
+    })),
+    ...resourcesQuestions.map((q, i) => ({ 
+      question: q, 
+      subject: getQuestionLabel(q, i, 'resources'),
+      domain: 'Resources'
+    }))
+  ];
+
+  const detailedData = allQuestions.map(({ question, subject, domain }) => ({
+    subject,
+    domain,
+    score: getQuestionScore(question.id),
+    fullMark: 5,
+    tooltipText: question.text
+  }));
+
+  const data = showDetailedView ? detailedData : domainData;
+
   const chartConfig = {
     score: {
-      label: 'Current Score',
+      label: 'Achieved PKI Maturity Level',
       theme: {
-        light: '#2270e0',
-        dark: '#2270e0',
+        light: '#b875dc', // Purple color as in the screenshot
+        dark: '#b875dc',
       },
     },
     fullMark: {
       label: 'Maximum Score',
       theme: {
-        light: '#cccccc',
+        light: '#dddddd',
         dark: '#555555',
       },
     },
@@ -58,8 +100,11 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
   return (
     <div className={`w-full ${heightClass} ${className}`}>
       <ChartContainer config={chartConfig} className="w-full h-full">
-        <RadarChart outerRadius="80%" data={data}>
-          <PolarGrid stroke="#ccc" />
+        <RadarChart 
+          outerRadius="80%" 
+          data={data}
+        >
+          <PolarGrid gridType="polygon" stroke="#ccc" />
           <PolarAngleAxis 
             dataKey="subject" 
             tick={{ 
@@ -68,25 +113,43 @@ const RadarChartComponent: React.FC<RadarChartProps> = ({
               fontWeight: 'bold' 
             }} 
           />
-          <PolarRadiusAxis domain={[0, 5]} tickCount={6} />
+          <PolarRadiusAxis 
+            domain={[0, 5]} 
+            tickCount={6} 
+            axisLine={true}
+            tick={{ fontSize: 10 }}
+          />
           <Radar
-            name="Current Score"
+            name={chartConfig.score.label}
             dataKey="score"
-            stroke="#2270e0"
-            fill="#2270e0"
-            fillOpacity={0.5}
+            stroke={chartConfig.score.theme.light}
+            fill={chartConfig.score.theme.light}
+            fillOpacity={0.4}
+            dot={true}
           />
           {showFullMark && (
             <Radar
-              name="Maximum Score"
+              name={chartConfig.fullMark.label}
               dataKey="fullMark"
-              stroke="#cccccc"
-              fill="#cccccc"
-              fillOpacity={0.3}
+              stroke={chartConfig.fullMark.theme.light}
+              fill={chartConfig.fullMark.theme.light}
+              fillOpacity={0.1}
+              dot={false}
             />
           )}
           {showTooltip && (
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={
+              <ChartTooltipContent 
+                formatter={(value, name, entry) => {
+                  // @ts-ignore - tooltipText is a custom property
+                  const tooltipText = entry.payload.tooltipText;
+                  if (tooltipText && showDetailedView) {
+                    return [value, `${name}: ${tooltipText}`];
+                  }
+                  return [value, name];
+                }}
+              />
+            } />
           )}
           {showLegend && <Legend />}
         </RadarChart>
