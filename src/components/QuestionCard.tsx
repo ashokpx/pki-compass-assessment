@@ -4,18 +4,40 @@ import { useAssessment, Question } from '@/contexts/AssessmentContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuestionCardProps {
   question: Question;
+  showFeedback?: boolean;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, showFeedback = true }) => {
   const { answers, setAnswer } = useAssessment();
+  const { toast } = useToast();
   const existingAnswer = answers.find(a => a.questionId === question.id);
   const selectedValue = existingAnswer ? existingAnswer.score : 0;
 
   const handleChange = (value: string) => {
-    setAnswer(question.id, parseInt(value, 10));
+    const newValue = parseInt(value, 10);
+    const prevValue = selectedValue;
+    setAnswer(question.id, newValue);
+    
+    // Show toast notification for first answer or score change
+    if (showFeedback) {
+      if (prevValue === 0) {
+        toast({
+          title: "Question answered",
+          description: "Your assessment score has been updated",
+          duration: 2000,
+        });
+      } else if (prevValue !== newValue) {
+        toast({
+          title: "Answer updated",
+          description: `Changed from ${prevValue} to ${newValue}`,
+          duration: 2000,
+        });
+      }
+    }
   };
 
   return (

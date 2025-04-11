@@ -3,9 +3,11 @@ import React from 'react';
 import { useAssessment, governanceQuestions } from '@/contexts/AssessmentContext';
 import QuestionCard from '@/components/QuestionCard';
 import ScoreCard from '@/components/ScoreCard';
+import RadarChart from '@/components/RadarChart';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Governance: React.FC = () => {
   const { domainScores } = useAssessment();
@@ -17,17 +19,33 @@ const Governance: React.FC = () => {
         <ScoreCard title="Governance Score" score={domainScores.governance} color="border-t-blue-600" />
       </div>
       
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8">
-        <p className="text-blue-700">
-          This section evaluates your PKI governance policies, structure, risk management framework, and compliance.
-          Answer all questions to receive your governance maturity score.
-        </p>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <p className="text-blue-700">
+              This section evaluates your PKI governance policies, structure, risk management framework, and compliance.
+              Answer all questions to receive your governance maturity score.
+            </p>
+          </div>
 
-      <div className="mb-8">
-        {governanceQuestions.map((question) => (
-          <QuestionCard key={question.id} question={question} />
-        ))}
+          <div className="mb-6">
+            {governanceQuestions.map((question) => (
+              <QuestionCard key={question.id} question={question} />
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-1">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-semibold mb-4">Live Assessment Progress</h3>
+              <RadarChart size="md" showLegend={false} />
+              <div className="text-center mt-4 text-sm text-gray-500">
+                Chart updates as you answer questions
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="flex justify-between">
